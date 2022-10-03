@@ -68,6 +68,8 @@ async function handleGithubRequest(request) {
   if (!branch.startsWith("refs/heads/"))
     return errResponse("Invalid tag: " + branch)
   const pkg_name = branch.replace("refs/heads/","")
+  if (pkg_name.startsWith("_"))
+    return errResponse("Ignored special branch: " + branch)
 
   EWEOS_LOG.put("last_update", JSON.stringify(payload.head_commit))
 
@@ -76,7 +78,21 @@ async function handleGithubRequest(request) {
     return response
   }
   else {
-    return errResponse("Package creation, handled by github workflow")
+    const gh_req = {
+      body: JSON.stringify({
+        event_type:"creation",
+        client_payload:{
+          pkg: pkg_name
+        }
+      }),
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + GH_DISPATCH_TOKEN,
+        'User-Agent': 'Cloudflare'
+      },
+    };
+    const response = await fetch("https://api.github.com/repos/eweOS/packages/dispatches", gh_req);
+    return response
   }
   return errResponse("Unexpected behavior")
 }
