@@ -2,6 +2,15 @@
 
 PKGNAME=${REQUEST_URI#/package/}
 
+if [ -z "${PKGNAME}" ]; then
+cat << EOF
+Content-type: text/plain
+
+Usage: /package/<PackageName>
+EOF
+exit
+fi
+
 if [[ $HTTP_USER_AGENT == *"curl"* ]]; then
 
 cat << EOF
