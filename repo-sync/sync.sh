@@ -61,10 +61,10 @@ done
 
 echo "Syncing images for x86_64 ..."
 rsync -atrzlu --delete-after \
-        rsync://$RHOST/Repo/Image/Arch/ \
+        rsync://$RHOST/Image/Arch/x86_64/:repo/ \
         $BASE_DIR-images/x86_64
 
 echo "Syncing images for aarch64 ..."
 rsync -atrzlu --delete-after \
-        rsync://$RHOST/Repo/Image/ArchArm/ \
+        rsync://$RHOST/Image/ArchArm/aarch64/:repo/ \
         $BASE_DIR-images/aarch64
