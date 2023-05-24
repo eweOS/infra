@@ -1,0 +1,3 @@
+#!/bin/bash
+
+pacman --noconfirm -Syu && pacman --noconfirm --needed -Sy base-devel makepkg rsync

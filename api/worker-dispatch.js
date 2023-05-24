@@ -10,10 +10,8 @@ addEventListener("fetch", (event) => {
 
 async function handleRequest(request) {
   const { pathname } = new URL(request.url);
-
   if (pathname.startsWith("/github"))
     return handleGithubRequest(request)
-
   if (pathname.startsWith("/update"))
     return handleUpdateRequest(request)
 
@@ -35,13 +33,16 @@ async function handleUpdateRequest(request) {
 // post: github webhooks
 
 async function handleGithubRequest(request) {
-  
   if (request.method !== 'POST')
     return errResponse("Invalid method")
 
   const contentType = request.headers.get('content-type') || '';
   if (!contentType.includes('application/json'))
     return errResponse("Blank payload")
+
+  const hooktype = request.headers.get('X-GitHub-Event')
+  if (!hooktype)
+    return errResponse("No event type")
 
   const payload = await request.json()
   const signature = request.headers.get('X-Hub-Signature')
@@ -52,6 +53,20 @@ async function handleGithubRequest(request) {
   if (!ver)
     return errResponse("Token verification failed")
 
+  switch(hooktype){
+    case "push": {
+      return handleGithubPushRequest(payload)
+    }
+    case "pull_request": {
+      return errResponse("Unexpected behavior")
+    }
+    default: {
+      return errResponse("Unexpected behavior")
+    }
+  }
+}
+
+async function handleGithubPushRequest(payload){
   const req = {
     method: 'POST',
     headers: {
@@ -59,7 +74,7 @@ async function handleGithubRequest(request) {
     },
   };
 
-  if (payload.head_commit.message.includes("#nobuild"))
+  if (payload.head_commit.message?.includes("#nobuild") ?? false)
     return errResponse("Tagged #nobuild")
 
   let branch = payload.ref
@@ -74,27 +89,29 @@ async function handleGithubRequest(request) {
   EWEOS_LOG.put("last_update", JSON.stringify(payload.head_commit))
 
   if (!payload.created) {
-    const response = await fetch("https://os-build.ewe.moe/trigger/runservice?project=eweOS:Main&package=" + pkg_name, req);
-    return response
+      await fetch("https://os-build.ewe.moe/trigger/runservice?project=eweOS:Main&package=" + pkg_name, req);
   }
-  else {
-    const gh_req = {
-      body: JSON.stringify({
-        event_type:"creation",
-        client_payload:{
-          pkg: pkg_name
-        }
-      }),
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + GH_DISPATCH_TOKEN,
-        'User-Agent': 'Cloudflare'
-      },
-    };
-    const response = await fetch("https://api.github.com/repos/eweOS/packages/dispatches", gh_req);
-    return response
-  }
-  return errResponse("Unexpected behavior")
+
+  await github_dispatch(pkg_name)
+  return jsonResponse({})
+}
+
+async function github_dispatch(pkg_name){
+  const gh_req = {
+    body: JSON.stringify({
+      event_type:"push",
+      client_payload:{
+        pkg: pkg_name
+      }
+    }),
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + GH_DISPATCH_TOKEN,
+      'User-Agent': 'Cloudflare'
+    },
+  };
+  const response = await fetch("https://api.github.com/repos/eweOS/packages/dispatches", gh_req);
+  return response 
 }
 
 // webhook verify functions
