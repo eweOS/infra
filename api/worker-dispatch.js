@@ -14,7 +14,6 @@ async function handleRequest(request) {
     return handleGithubRequest(request)
   if (pathname.startsWith("/update"))
     return handleUpdateRequest(request)
-
   return errResponse("Undefined endpoint")
 }
 
@@ -58,7 +57,18 @@ async function handleGithubRequest(request) {
       return handleGithubPushRequest(payload)
     }
     case "pull_request": {
-      return errResponse("Unexpected behavior")
+      const actiontype = payload.action
+      switch(actiontype){
+        case "opened": {
+          return handleGithubPullRequest(payload)
+        }
+        case "synchronize": {
+          return handleGithubPullRequest(payload)
+        }
+        default: {
+          return errResponse("Unexpected behavior")
+        }
+      }
     }
     default: {
       return errResponse("Unexpected behavior")
@@ -66,11 +76,29 @@ async function handleGithubRequest(request) {
   }
 }
 
+async function handleGithubPullRequest(payload){
+  const pull_request = payload.pull_request
+  if (pull_request.title.includes("dontmerge"))
+    return errResponse("Tagged #nobuild")
+  if (pull_request.labels.includes("dontmerge"))
+    return errResponse("Tagged #nobuild")
+  let base_branch = pull_request.base.ref
+  let pr_branch = pull_request.head.ref
+  if (!base_branch || !pr_branch)
+    return errResponse("No branch specified")
+  if (base_branch.startsWith("_"))
+    return errResponse("Ignored special branch: " + base_branch)
+  return await github_dispatch(base_branch, "pr", {
+    id: pull_request.id,
+    sha: pull_request.head.sha
+  })
+}
+
 async function handleGithubPushRequest(payload){
   const req = {
     method: 'POST',
     headers: {
-      'Authorization': 'Token ' + TOKEN,
+      'Authorization': 'Token ' + OBS_TOKEN,
     },
   };
 
@@ -90,19 +118,18 @@ async function handleGithubPushRequest(payload){
 
   if (!payload.created) {
       await fetch("https://os-build.ewe.moe/trigger/runservice?project=eweOS:Main&package=" + pkg_name, req);
+      return await github_dispatch(pkg_name)
   }
-
-  await github_dispatch(pkg_name)
-  return jsonResponse({})
+  else {
+      return await github_dispatch(pkg_name,"creation")
+  }
 }
 
-async function github_dispatch(pkg_name){
+async function github_dispatch(pkg_name, pkg_type="push", pkg_data=null){
   const gh_req = {
     body: JSON.stringify({
-      event_type:"push",
-      client_payload:{
-        pkg: pkg_name
-      }
+      event_type: pkg_type,
+      client_payload: {pkg: pkg_name, data: pkg_data}
     }),
     method: 'POST',
     headers: {
@@ -110,7 +137,7 @@ async function github_dispatch(pkg_name){
       'User-Agent': 'Cloudflare'
     },
   };
-  const response = await fetch("https://api.github.com/repos/eweOS/packages/dispatches", gh_req);
+  const response = await fetch("https://api.github.com/repos/eweOS/workflow/dispatches", gh_req);
   return response 
 }
 

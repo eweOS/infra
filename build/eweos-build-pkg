@@ -2,18 +2,6 @@
 
 cd /build
 
-submit_build(){
-	payload=$1
-	curl -L -s \
-  		-X POST \
-		-H "Authorization: token $SUBMIT_TOKEN" \
-		-H "content-type: application/json" \
-  		https://ewe-build-status.nia.workers.dev/build \
-  		-d "$payload" \
-	> /dev/null
-}
-
-
 if [ -z "$PKG_NAME" ]; then
 	echo "Error: no package name provided."
 	exit 1
@@ -32,20 +20,12 @@ BUILDSTATUS=$?
 set +o pipefail
 TIMER_SEC=$(( SECONDS - TIMER_START ))
 
-if [ ! -z "$SUBMIT_TOKEN" ]; then
-	if [[ ! "$BUILDSTATUS" -eq 0 ]]; then
-		BUILDSTOP=`tail -n 10 /build.log | grep " ERROR: A failure occurred in " | sed 's/\=\=> ERROR: A failure occurred in \(.*\)()./\1/'`
-	fi
-	source ./PKGBUILD
-	submit_build "{\"pkgname\":\"$PKG_NAME\",\"arch\":\"`uname -m`\",\"version\":\"$pkgver\",\"status\":\"$BUILDSTATUS\",\"date\":\"`date +%s`\",\"time\":\"$TIMER_SEC\",\"stop\":\"$BUILDSTOP\"}"
-fi
-
 if [ ! -z "$RSYNC_TOKEN" ]; then
 	if [[ "$BUILDSTATUS" -eq 0 ]]; then
 		echo "Uploading packages..."
 		ls -lh ./*.pkg.* | tee -a /build.log
-		RSYNC_PASSWORD=$RSYNC_TOKEN rsync -6t --mkpath ./*.pkg.* rsync://build@os-repo-new-rsync.ewe.moe/Repo-New/main/os/`uname -m`/
+		RSYNC_PASSWORD=$RSYNC_TOKEN rsync -6t --mkpath ./*.pkg.* $RSYNC_LOC/os/`uname -m`/
 	fi
 	echo "Uploading logs..."
-	RSYNC_PASSWORD=$RSYNC_TOKEN rsync -6t --mkpath /build.log rsync://build@os-repo-new-rsync.ewe.moe/Log-New/main/$PKG_NAME/build-`uname -m`.log
+	RSYNC_PASSWORD=$RSYNC_TOKEN rsync -6t --mkpath /build.log $RSYNC_LOG_LOC/$PKG_NAME/build-`uname -m`.log
 fi
