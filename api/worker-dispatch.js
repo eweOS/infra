@@ -90,6 +90,7 @@ async function handleGithubPullRequest(payload){
     return errResponse("Ignored special branch: " + base_branch)
   return await github_dispatch(base_branch, "pr", {
     id: pull_request.id,
+    number: pull_request.number,
     sha: pull_request.head.sha
   })
 }
