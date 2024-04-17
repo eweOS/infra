@@ -20,7 +20,7 @@ cat <<EOF > /tmp/www-info.html
 <pre>
 EOF
 
-neofetch --stdout >> /tmp/www-info.html
+fastfetch >> /tmp/www-info.html
 
 cat <<EOF >> /tmp/www-info.html
 `free -h`
@@ -30,6 +30,7 @@ cat <<EOF >> /tmp/www-info.html
 Total packages in repo: `pacman -Sl | wc -l`
 -------------
 Updated: `date`
+Cron Next: `cronnext`
 </pre>
 </body>
 </html>
