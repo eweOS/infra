@@ -32,8 +32,8 @@ EOF
 exit
 fi
 
-if [ ! -z $GREPSTR ]; then
-  OUTPUT=`pacman -Sii $PKGNAME 2>&1 | grep "$GREPSTR" | cut -f 2 -d ':'`
+if [ "$GREPSTR" != "" ]; then
+  OUTPUT=$(pacman -Sii $PKGNAME 2>&1 | grep "$GREPSTR" | cut -f 2 -d ':')
 fi
 
 if [[ $HTTP_USER_AGENT == *"curl"* ]]; then
@@ -41,7 +41,7 @@ if [[ $HTTP_USER_AGENT == *"curl"* ]]; then
 cat << EOF
 Content-type: text/plain
 
-`( test $OUTPUT && echo $OUTPUT) || (pacman -Sii $PKGNAME 2>&1 )`
+`( test "$OUTPUT" && echo $OUTPUT) || (pacman -Sii $PKGNAME 2>&1 )`
 EOF
 
 else
@@ -53,7 +53,7 @@ Content-type: text/html
 <head><title>Query for $PKGNAME</title></head>
 <body>
 <pre>
-`( test $OUTPUT && echo $OUTPUT) || (pacman -Sii $PKGNAME 2>&1 )`
+`( test "$OUTPUT" && echo $OUTPUT) || (pacman -Sii $PKGNAME 2>&1 )`
 </pre>
 </body>
 </html>
