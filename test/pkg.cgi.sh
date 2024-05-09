@@ -15,7 +15,7 @@ case $EXTCMD in
     GREPSTR='^Version'
     ;;
   *)
-    unset $PKGNAME
+    unset PKGNAME
     ;;
 esac
 
