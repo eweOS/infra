@@ -4,15 +4,6 @@ EXTCMD=${REQUEST_URI#*\?}
 REQUEST_URI=${REQUEST_URI%\?*}
 PKGNAME=${REQUEST_URI#/package/}
 
-if [ -z "${PKGNAME}" ]; then
-cat << EOF
-Content-type: text/plain
-
-Usage: /package/<PackageName>
-EOF
-exit
-fi
-
 case $EXTCMD in
   "dep")
     GREPSTR='^Depends On'
@@ -23,7 +14,19 @@ case $EXTCMD in
   "ver")
     GREPSTR='^Version'
     ;;
+  *)
+    unset $PKGNAME
+    ;;
 esac
+
+if [ -z "${PKGNAME}" ]; then
+cat << EOF
+Content-type: text/plain
+
+Usage: /package/<PackageName>[?{dep,rdep,ver}]
+EOF
+exit
+fi
 
 if [ ! -z $GREPSTR ]; then
   OUTPUT=`pacman -Sii $PKGNAME 2>&1 | grep "$GREPSTR" | cut -f 2 -d ':'`
