@@ -6,16 +6,20 @@ PKGNAME=${REQUEST_URI#/package/}
 
 case $EXTCMD in
   "dep")
-    EXTCMD="grep '^Depends On' | cut -f 2 -d ':'"
+    EXTCMD="grep '^Depends On'"
+    EXT2CMD="cut -f 2 -d ':'"
     ;;
   "rdep")
-    EXTCMD="grep '^Required By' | cut -f 2 -d ':'"
+    EXTCMD="grep '^Required By'"
+    EXT2CMD="cut -f 2 -d ':'"
     ;;
   "ver")
-    EXTCMD="grep '^Version' | cut -f 2 -d ':'"
+    EXTCMD="grep '^Version'"
+    EXT2CMD="cut -f 2 -d ':'"
     ;;
   *)
     EXTCMD="cat"
+    EXT2CMD="cat"
     ;;
 esac
 
@@ -34,7 +38,7 @@ if [[ $HTTP_USER_AGENT == *"curl"* ]]; then
 cat << EOF
 Content-type: text/plain
 
-`pacman -Sii $PKGNAME 2>&1 | $EXTCMD`
+`pacman -Sii $PKGNAME 2>&1 | $EXTCMD | $EXT2CMD`
 EOF
 
 else
@@ -45,7 +49,7 @@ Content-type: text/html
 <html>
 <head><title>Query for $PKGNAME</title></head>
 <body>
-<pre>`pacman -Sii $PKGNAME 2>&1 | $EXTCMD`</pre>
+<pre>`pacman -Sii $PKGNAME 2>&1 | $EXTCMD | $EXT2CMD`</pre>
 </body>
 </html>
 EOF
