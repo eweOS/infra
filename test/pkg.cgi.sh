@@ -4,6 +4,7 @@ EXTCMD=${REQUEST_URI#*\?}
 REQUEST_URI=${REQUEST_URI%\?*}
 PKGNAME=${REQUEST_URI#/package/}
 
+if [ ! -z $EXTCMD ]; then
 case $EXTCMD in
   "dep")
     GREPSTR='^Depends On'
@@ -18,6 +19,7 @@ case $EXTCMD in
     unset PKGNAME
     ;;
 esac
+fi
 
 if [ -z "${PKGNAME}" ]; then
 cat << EOF
