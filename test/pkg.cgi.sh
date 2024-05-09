@@ -4,7 +4,7 @@ EXTCMD=${REQUEST_URI#*\?}
 REQUEST_URI=${REQUEST_URI%\?*}
 PKGNAME=${REQUEST_URI#/package/}
 
-case EXTCMD in
+case $EXTCMD in
   "dep")
     EXTCMD="| grep '^Depends On' | cut -f 2 -d ':'"
     ;;
