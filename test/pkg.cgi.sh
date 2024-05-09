@@ -15,6 +15,8 @@ case $EXTCMD in
   "ver")
     GREPSTR='^Version'
     ;;
+  "" | $REQUEST_URI)
+    ;;
   *)
     unset PKGNAME
     ;;
