@@ -16,7 +16,7 @@ if [[ $HTTP_USER_AGENT == *"curl"* ]]; then
 cat << EOF
 Content-type: text/plain
 
-`pacman -Si $PKGNAME 2>&1`
+`pacman -Sii $PKGNAME 2>&1`
 EOF
 
 else
