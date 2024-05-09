@@ -6,16 +6,16 @@ PKGNAME=${REQUEST_URI#/package/}
 
 case $EXTCMD in
   "dep")
-    EXTCMD="| grep '^Depends On' | cut -f 2 -d ':'"
+    EXTCMD="grep '^Depends On' | cut -f 2 -d ':'"
     ;;
   "rdep")
-    EXTCMD="| grep '^Required By' | cut -f 2 -d ':'"
+    EXTCMD="grep '^Required By' | cut -f 2 -d ':'"
     ;;
   "ver")
-    EXTCMD="| grep '^Version' | cut -f 2 -d ':'"
+    EXTCMD="grep '^Version' | cut -f 2 -d ':'"
     ;;
   *)
-    EXTCMD="| cat"
+    EXTCMD="cat"
     ;;
 esac
 
