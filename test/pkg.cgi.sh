@@ -27,7 +27,7 @@ Content-type: text/html
 <html>
 <head><title>Query for $PKGNAME</title></head>
 <body>
-<pre>`pacman -Si $PKGNAME 2>&1`</pre>
+<pre>`pacman -Sii $PKGNAME 2>&1`</pre>
 </body>
 </html>
 EOF
