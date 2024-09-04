@@ -20,7 +20,7 @@ cat <<EOF > /tmp/www-info.html
 <pre>
 EOF
 
-fastfetch >> /tmp/www-info.html
+fastfetch --pipe -l none -s `fastfetch --print-structure | sed 's/:Colors//'` >> /tmp/www-info.html
 
 cat <<EOF >> /tmp/www-info.html
 `free -h`
