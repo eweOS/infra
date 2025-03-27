@@ -1,16 +1,17 @@
 #!/bin/bash
 
-RHOST=obs_server
+RHOST=os-repo-rsync-origin.ewe.moe
 
-BASE_DIR=/mirror/data/eweos
+BASE_DIR=/data/eweos-repo/eweos
 REPOS=(
-        Main
-        Testing
+        main
+        testing
 )
 ARCHS=(
         x86_64
         aarch64
         riscv64
+        loongarch64
 )
 
 for REPO_NAME in ${REPOS[@]}; do
@@ -31,7 +32,9 @@ for REPO_NAME in ${REPOS[@]}; do
 
                         for f in ${BASE_DIR}/${REPO_NAME}/os/$REPO_ARCH/eweOS_${REPO_NAME^}_rolling*; do
                                 fn=$(echo $f | sed "s/eweOS_${REPO_NAME^}_rolling/${REPO_NAME}/g")
-                                mv "$f" "$fn"
+                                if [ ! -L "$fn" ]; then
+                                        ln -s "$f" "$fn"
+                                fi
                         done
                 else
                         echo "${REPO_NAME} ${REPO_ARCH} db file error, skipped."
