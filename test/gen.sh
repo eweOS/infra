@@ -9,7 +9,6 @@ cat <<EOF > /tmp/www-info.html
 <title>eweOS Test Server</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="generator" content="http://chalarangelo.github.io/htmltemplategenerator/">
 </head>
 <body>
 <h1>eweOS Test Server</h1>
@@ -37,4 +36,3 @@ Cron Next: `cronnext`
 EOF
 
 cp /tmp/www-info.html /var/ewe/index.html
-

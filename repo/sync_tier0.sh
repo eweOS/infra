@@ -14,6 +14,12 @@ ARCHS=(
         loongarch64
 )
 
+if [ -f /tmp/eweos-sync ]; then
+  exit 0
+fi
+
+touch /tmp/eweos-sync
+
 for REPO_NAME in ${REPOS[@]}; do
         mkdir -p ${BASE_DIR}/${REPO_NAME}/os/${REPO_ARCH}
 
@@ -41,3 +47,5 @@ for REPO_NAME in ${REPOS[@]}; do
                 fi
         done
 done
+
+rm /tmp/eweos-sync
