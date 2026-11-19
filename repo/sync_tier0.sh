@@ -1,6 +1,7 @@
 #!/bin/bash
 
 RHOST=os-repo-rsync-origin.ewe.moe
+OBS_API=https://os-build.ewe.moe
 
 BASE_DIR=/data/eweos-repo/eweos
 REPOS=(
@@ -13,6 +14,8 @@ ARCHS=(
         riscv64
         loongarch64
 )
+
+: "${OBS_USER:?OBS_USER is not set}" "${OBS_PASS:?OBS_PASS is not set}"
 
 if [ -f /tmp/eweos-sync ]; then
   exit 0
@@ -27,10 +30,9 @@ for REPO_NAME in ${REPOS[@]}; do
 
                 echo "Syncing repo ${REPO_NAME} ${REPO_ARCH}"
 
-                if rsync --list-only \
-                        rsync://$RHOST/repo-$REPO_NAME/$REPO_ARCH/ \
-                                | grep ".db.tar.gz$" \
-                                | grep -q "^-"; then
+                if curl -fsS -u "$OBS_USER:$OBS_PASS" \
+                        "$OBS_API/build/eweOS:${REPO_NAME^}/_result?repository=rolling&arch=$REPO_ARCH&view=summary" |
+                        grep -q '<result [^>]*state="published"'; then
 
                         rsync -atrzlu --delete-after \
                                 rsync://$RHOST/repo-$REPO_NAME/$REPO_ARCH/ \
@@ -43,7 +45,7 @@ for REPO_NAME in ${REPOS[@]}; do
                                 fi
                         done
                 else
-                        echo "${REPO_NAME} ${REPO_ARCH} db file error, skipped."
+                        echo "${REPO_NAME} ${REPO_ARCH} not published, skipped."
                 fi
         done
 done
